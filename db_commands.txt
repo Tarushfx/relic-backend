@@ -1,0 +1,23 @@
+-- Make relic_admin the owner of the database
+ALTER DATABASE relic_db OWNER TO relic_admin;
+
+-- Grant relic_admin the ability to create tables/schemas inside relic_db
+GRANT ALL PRIVILEGES ON DATABASE relic_db TO relic_admin;
+
+-- 1. Allow the user to "see" the schema
+GRANT USAGE ON SCHEMA public TO relic_user;
+
+-- 2. Allow Read, Write, and Update on all CURRENT tables
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO relic_user;
+
+-- 3. Allow usage of IDs (Serial/Sequences) so they can add new rows
+GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO relic_user;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO relic_user;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public 
+GRANT USAGE, SELECT ON SEQUENCES TO relic_user;
+
+nano /opt/homebrew/var/postgresql@15/pg_hba.conf
+for passwordless login

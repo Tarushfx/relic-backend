@@ -1,0 +1,48 @@
+from django.db import models
+from django.contrib.auth.models import AbstractUser
+
+class User(AbstractUser):
+    pass
+
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    unit_system = models.CharField(max_length=10, default='metric')
+    timezone = models.CharField(max_length=50, default='UTC')
+    theme = models.CharField(max_length=20, default='dark')
+
+class LogDefinition(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    icon = models.CharField(max_length=50, default='list')
+    color = models.CharField(max_length=7, default='#007AFF')
+    schema_config = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+class LogEntry(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    log_definition = models.ForeignKey(LogDefinition, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True, db_index=True)
+    data = models.JSONField()
+    notes = models.TextField(blank=True, null=True)
+
+    class Meta:
+        ordering = ['-timestamp']
+
+class DashboardSettings(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    layout_config = models.JSONField(default=dict)
+
+class Invitation(models.Model):
+    token = models.CharField(max_length=64, unique=True)
+    is_used = models.BooleanField(default=False)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    expires_at = models.DateTimeField()
+
+class SystemPulse(models.Model):
+    timestamp = models.DateTimeField(auto_now_add=True)
+    cpu_temperature = models.DecimalField(max_digits=5, decimal_places=2)
+    battery_level = models.IntegerField()
+    is_charging = models.BooleanField()
+    ram_available_mb = models.IntegerField()
+    storage_available_gb = models.DecimalField(max_digits=6, decimal_places=2)
