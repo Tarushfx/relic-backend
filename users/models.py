@@ -11,7 +11,7 @@ class User(AbstractUser):
     REQUIRED_FIELDS = ["username"]
 
 
-class Profile(models.Model):
+class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     unit_system = models.CharField(max_length=10, default="metric")
     timezone = models.CharField(max_length=50, default="UTC")
@@ -20,7 +20,6 @@ class Profile(models.Model):
 
 class Invitation(models.Model):
     email = models.EmailField()
-
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
