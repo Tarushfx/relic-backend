@@ -40,19 +40,19 @@ class InvitationRequestSerializer(serializers.ModelSerializer):
 
 
 class SignupRequestSerializer(serializers.Serializer):
-    """
-    A pure Request Model (Data Transfer Object) for handling signups.
-    Doesn't inherit ModelSerializer directly to keep logic decoupled.
-    """
-
     email = serializers.EmailField()
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
-    token = serializers.UUIDField()
+    token = serializers.UUIDField(required=True)
 
     def validate(self, data):
         email = data.get("email")
         token = data.get("token")
+
+        if not token:
+            raise serializers.ValidationError(
+                {"token": "Invitation token is required."}
+            )
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(

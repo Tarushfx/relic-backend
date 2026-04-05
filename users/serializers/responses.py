@@ -24,5 +24,5 @@ class InvitationResponseSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Invitation
-        fields = ["email", "token", "created_at", "inviter_email"]
-        read_only_fields = ["token", "created_at"]
+        fields = ["email", "token", "inviter_email"]
+        read_only_fields = ["token"]
