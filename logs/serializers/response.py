@@ -15,7 +15,7 @@ class LogTableResponseSerializer(serializers.Serializer):
         pass
 
 
-class LogDefinitionRequestSerializer(serializers.Serializer):
+class LogDefinitionResponseSerializer(serializers.Serializer):
     id = serializers.IntegerField(read_only=True)
     name = serializers.CharField(max_length=255)
     description = serializers.CharField(required=False, allow_blank=True)

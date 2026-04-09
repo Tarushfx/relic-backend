@@ -8,6 +8,10 @@ class BaseAPIView(views.APIView):
     All views should inherit from this instead of APIView directly.
     """
 
+    def unauthorized_response(self, message="Authentication required"):
+        """Return a standardized unauthorized response."""
+        return ApiResponse.unauthorized(message=message)
+
     def success_response(
         self, data=None, message="Operation successful", status_code=200
     ):

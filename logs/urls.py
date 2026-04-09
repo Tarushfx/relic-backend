@@ -9,23 +9,21 @@ from logs.views import (
 )
 
 urlpatterns = [
-    path(
-        "entries/", LogEntryDetailUpdateDeleteView.as_view(), name="log-get-post-list"
-    ),
+    path("entries/", LogEntryDetailUpdateDeleteView.as_view(), name="get-log-entry"),
     path(
         "entries/<int:id>/",
         LogEntryDetailUpdateDeleteView.as_view(),
-        name="log-patch-detail",
+        name="get-post-patch-delete-log-entry-detail",
     ),
-    path("activity/<int:user_id>/", ActivityView.as_view(), name="activity-list"),
+    path("activity/", ActivityView.as_view(), name="activity-list"),
     path(
         "table/",
-        LogDefinitionCreateDeleteView.as_view(),
-        name="log-entry-definition-list",
+        LogTableView.as_view(),
+        name="get-table-list",
     ),
     path(
         "table/<int:id>/",
         LogTableView.as_view(),
-        name="log-entry-definition-detail",
+        name="get-post-patch-delete-table-detail",
     ),
 ]
