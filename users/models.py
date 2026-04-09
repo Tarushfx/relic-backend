@@ -21,7 +21,7 @@ class UserProfile(models.Model):
 
 
 class Invitation(models.Model):
-    email = models.EmailField(unique=True) 
+    email = models.EmailField(unique=True)
     token = models.UUIDField(default=uuid.uuid4, editable=False, unique=True)
     invited_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -32,18 +32,9 @@ class Invitation(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def save(self, *args, **kwargs):
-        if not self.token:
-            self.token = uuid.uuid4()
         if self.invited_by and not self.inviter_email:
             self.inviter_email = self.invited_by.email
         super().save(*args, **kwargs)
 
     def __str__(self):
         return f"Invite to {self.email} from {self.invited_by.email}"
-
-
-@receiver(post_save, sender=User)
-def create_user_profile(sender, instance, created, **kwargs):
-    """Automatically create a UserProfile whenever a new User is created."""
-    if created:
-        UserProfile.objects.get_or_create(user=instance)

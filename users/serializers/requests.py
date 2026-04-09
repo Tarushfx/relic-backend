@@ -43,23 +43,16 @@ class SignupRequestSerializer(serializers.Serializer):
     email = serializers.EmailField()
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
-    token = serializers.UUIDField(required=True)
 
     def validate(self, data):
         email = data.get("email")
-        token = data.get("token")
-
-        if not token:
-            raise serializers.ValidationError(
-                {"token": "Invitation token is required."}
-            )
 
         if User.objects.filter(email=email).exists():
             raise serializers.ValidationError(
                 {"email": "A user with this email already exists."}
             )
 
-        if not Invitation.objects.filter(email=email, token=token).exists():
+        if not Invitation.objects.filter(email=email).exists():
             raise serializers.ValidationError(
                 {"token": "Invalid or expired invitation token."}
             )

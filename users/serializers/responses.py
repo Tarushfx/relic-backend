@@ -11,6 +11,12 @@ class UserResponseSerializer(serializers.ModelSerializer):
         fields = ["id", "email", "username"]
 
 
+class SignUpResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["email", "username", "access", "refresh"]
+
+
 class ProfileResponseSerializer(serializers.ModelSerializer):
     user = UserResponseSerializer(read_only=True)
 

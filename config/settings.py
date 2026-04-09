@@ -29,7 +29,7 @@ SECRET_KEY = os.environ.get(
 DEBUG = os.environ.get("DEBUG", "True").lower() in ("true", "1", "t")
 
 ALLOWED_HOSTS = (
-    os.environ.get("ALLOWED_HOSTS", "").split(",")
+    os.environ.get("ALLOWED_HOSTS").split(",")
     if os.environ.get("ALLOWED_HOSTS")
     else []
 )
@@ -143,7 +143,7 @@ REST_FRAMEWORK = {
 from datetime import timedelta
 
 SIMPLE_JWT = {
-    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=0),
+    "ACCESS_TOKEN_LIFETIME": timedelta(minutes=60),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=7),
     "ROTATE_REFRESH_TOKENS": True,
     "ALGORITHM": "HS256",

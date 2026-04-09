@@ -47,10 +47,9 @@ class ApiResponse:
         )
 
     @staticmethod
-    def no_content(message="No content"):
+    def no_content():
         """Create a no content response."""
-        return ApiResponse.success(
-            data=None, message=message, status_code=status.HTTP_204_NO_CONTENT
+        return ApiResponse.success(status_code=status.HTTP_204_NO_CONTENT
         )
 
     @staticmethod

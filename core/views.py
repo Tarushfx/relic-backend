@@ -27,3 +27,7 @@ class BaseAPIView(views.APIView):
     def validation_error_response(self, errors, message="Validation failed"):
         """Return a standardized validation error response."""
         return ApiResponse.validation_error(errors=errors, message=message)
+
+    def not_found_response(self, message="Resource not found"):
+        """Return a standardized not found response."""
+        return ApiResponse.not_found(message=message)
