@@ -5,18 +5,21 @@ from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from core.views import BaseAPIView
-from logs.serializers.response import (
+from logs.serializers.request import (
     LogDefinitionRequestSerializer,
-    LogDefinitionResponseSerializer,
 )
 from .models import LogDefinition, LogEntry
 from .serializers.serializers import (
     LogDefinitionSerializer,
     LogEntrySerializer,
-    LogTableResponseSerializer,
     LogTableSerializer,
     TableResultSetPagination,
 )
+from .serializers.response import (
+    LogDefinitionResponseSerializer,
+    LogTableResponseSerializer,
+)
+
 
 
 class LogTableView(BaseAPIView):

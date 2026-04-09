@@ -3,7 +3,6 @@ from django.urls import path
 from logs.serializers.serializers import LogTableSerializer
 from logs.views import (
     LogEntryDetailUpdateDeleteView,
-    LogDefinitionCreateDeleteView,
     LogTableView,
     ActivityView,
 )
