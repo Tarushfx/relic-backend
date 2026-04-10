@@ -8,6 +8,10 @@ class BaseAPIView(views.APIView):
     All views should inherit from this instead of APIView directly.
     """
 
+    def unauthorized_response(self, message="Authentication required"):
+        """Return a standardized unauthorized response."""
+        return ApiResponse.unauthorized(message=message)
+
     def success_response(
         self, data=None, message="Operation successful", status_code=200
     ):
@@ -31,3 +35,7 @@ class BaseAPIView(views.APIView):
     def not_found_response(self, message="Resource not found"):
         """Return a standardized not found response."""
         return ApiResponse.not_found(message=message)
+
+    def malformed_request(self, errors=None, message="Malformed request"):
+        """Return a standardized malformed request response."""
+        return ApiResponse.error(errors, message)
