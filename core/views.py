@@ -35,3 +35,7 @@ class BaseAPIView(views.APIView):
     def not_found_response(self, message="Resource not found"):
         """Return a standardized not found response."""
         return ApiResponse.not_found(message=message)
+
+    def malformed_request(self, errors=None, message="Malformed request"):
+        """Return a standardized malformed request response."""
+        return ApiResponse.error(errors, message)

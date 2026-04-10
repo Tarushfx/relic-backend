@@ -8,11 +8,18 @@ from logs.views import (
 )
 
 urlpatterns = [
-    path("entries/", LogEntryDetailUpdateDeleteView.as_view(), name="get-log-entry"),
+    path(
+        "entries/", LogEntryDetailUpdateDeleteView.as_view(), name="get-log-list-entry"
+    ),
     path(
         "entries/<int:id>/",
         LogEntryDetailUpdateDeleteView.as_view(),
-        name="get-post-patch-delete-log-entry-detail",
+        name="get-patch-delete-log-entry-detail",
+    ),
+    path(
+        "table/<int:id>/entries/",
+        LogEntryDetailUpdateDeleteView.as_view(),
+        name="post-entry",
     ),
     path("activity/", ActivityView.as_view(), name="activity-list"),
     path(

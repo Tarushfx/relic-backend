@@ -1,5 +1,6 @@
 from rest_framework import serializers
 
+from logs.models import LogDefinition, LogEntry
 from logs.serializers.serializers import LogTableSerializer
 
 
@@ -23,3 +24,19 @@ class LogDefinitionResponseSerializer(serializers.Serializer):
 
     class Meta:
         pass
+
+
+class LogEntryResponseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LogEntry
+        fields = ["id", "values", "created_at", "source", "timestamp"]
+
+
+class ActivityResponseSerializer(serializers.ModelSerializer):
+    # This 'log_definition' must match the field name on your LogEntry model
+    log_definition = LogDefinitionResponseSerializer(read_only=True)
+
+    class Meta:
+        model = LogEntry
+        # List all fields from LogEntry + the nested log_definition
+        fields = ["id", "log_definition", "values", "created_at"]

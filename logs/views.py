@@ -1,25 +1,29 @@
-from datetime import timezone
+from math import log
+
+from django.utils import timezone
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from django.shortcuts import get_object_or_404
 
 from core.views import BaseAPIView
+from logs.pagination import ActivityResultSetPagination
 from logs.serializers.request import (
     LogDefinitionRequestSerializer,
+    LogEntryRequestSerializer,
 )
 from .models import LogDefinition, LogEntry
 from .serializers.serializers import (
     LogDefinitionSerializer,
     LogEntrySerializer,
     LogTableSerializer,
-    TableResultSetPagination,
 )
+from .pagination import TableResultSetPagination
 from .serializers.response import (
+    ActivityResponseSerializer,
     LogDefinitionResponseSerializer,
     LogTableResponseSerializer,
 )
-
 
 
 class LogTableView(BaseAPIView):
@@ -76,18 +80,24 @@ class LogTableView(BaseAPIView):
 
     def post(self, request):
         try:
+            user = request.user
+            if not user:
+                return self.unauthorized_response()
             serializer = LogDefinitionSerializer(data=request.data)
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(user=user)
                 return self.created_response(
                     data=serializer.data, message="Log definition created successfully"
                 )
+            return self.malformed_request(serializer.errors)
         except Exception as e:
             return self.error_response(
                 str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
     def patch(self, request, id):
+        return self.http_method_not_allowed(request)
+        #  TODO: implement later
         try:
             log_definition = self.get_object(id)
             if not log_definition:
@@ -100,6 +110,7 @@ class LogTableView(BaseAPIView):
                 return self.created_response(
                     data=serializer.data, message="Log definition updated successfully"
                 )
+            return self.malformed_request(serializer.errors)
         except Exception as e:
             return self.error_response(
                 str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -108,7 +119,7 @@ class LogTableView(BaseAPIView):
     def delete(self, request, id):
         try:
             log_definition = self.get_object(id)
-            if not log_definition:
+            if not log_definition and log_definition.is_deleted:
                 return self.not_found_response()
             # soft delete: mark as inactive instead of deleting
             log_definition.is_deleted = True
@@ -128,6 +139,12 @@ class LogEntryDetailUpdateDeleteView(BaseAPIView):
         except LogEntry.DoesNotExist:
             return None
 
+    def get_table(self, id):
+        try:
+            return get_object_or_404(LogDefinition, id=id)
+        except LogDefinition.DoesNotExist:
+            return None
+
     def get(self, request, id):
         try:
             log_entry = self.get_object(id)
@@ -144,15 +161,20 @@ class LogEntryDetailUpdateDeleteView(BaseAPIView):
 
     def post(self, request, id):
         try:
-            log_entry = self.get_object(id)
-            if not log_entry:
-                return self.not_found_response()
-            serializer = LogEntrySerializer(log_entry, data=request.data)
+            log_definition = self.get_table(id)
+            if not log_definition or log_definition.is_deleted:
+                return self.not_found_response("No Table found")
+            if request.user != log_definition.user:
+                return self.unauthorized_response()
+            serializer = LogEntryRequestSerializer(
+                data=request.data, context={"log_definition": log_definition}
+            )
             if serializer.is_valid():
-                serializer.save()
+                serializer.save(log_definition=log_definition)
                 return self.success_response(
                     serializer.data, message="Log entry updated successfully"
                 )
+            return self.malformed_request(serializer.errors)
         except Exception as e:
             return self.error_response(
                 str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -175,14 +197,19 @@ class LogEntryDetailUpdateDeleteView(BaseAPIView):
     def patch(self, request, id):
         try:
             log_entry = self.get_object(id)
-            if not log_entry:
+            if not log_entry or log_entry.is_deleted:
                 return self.not_found_response()
+            if not log_entry.log_definition:
+                return self.malformed_request(message="No table found")
+            if log_entry.log_definition.user != request.user:
+                return self.unauthorized_response()
             serializer = LogEntrySerializer(log_entry, data=request.data, partial=True)
             if serializer.is_valid():
                 serializer.save()
                 return self.created_response(
                     data=serializer.data, message="Log entry updated successfully"
                 )
+            return self.malformed_request(serializer.errors)
         except Exception as e:
             return self.error_response(
                 str(e), status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -192,17 +219,21 @@ class LogEntryDetailUpdateDeleteView(BaseAPIView):
 class ActivityView(BaseAPIView):
     def get(self, request):
         try:
-            user_id = request.user.id
-            if not user_id:
+            user = request.user
+            if not user:
                 return self.unauthorized_response()
             log_entries = LogEntry.objects.filter(
-                log_definition__user__id=user_id
-            ).order_by("-created_at")
-            serializer = LogEntrySerializer(log_entries, many=True)
-            if not serializer.data:
+                log_definition__user=user,
+                is_deleted=False,
+            ).order_by("-timestamp")
+            paginator = ActivityResultSetPagination()
+            page = paginator.paginate_queryset(log_entries, request)
+            if not page:
                 return self.not_found_response(serializer.data)
+            serializer = ActivityResponseSerializer(page, many=True)
             return self.success_response(
-                serializer.data, message="Activity retrieved sucessfully"
+                paginator.get_paginated_response(serializer.data),
+                message="Activity retrieved sucessfully",
             )
         except Exception as e:
             return self.error_response(
