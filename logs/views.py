@@ -28,10 +28,7 @@ from .serializers.response import (
 
 class LogTableView(BaseAPIView):
     def get_object(self, id):
-        try:
-            return get_object_or_404(LogDefinition, id=id)
-        except LogEntry.DoesNotExist:
-            return None
+        return LogEntry.objects.filter(id=id).first()
 
     def get(self, request, id=None):
         try:
@@ -66,7 +63,7 @@ class LogTableView(BaseAPIView):
                     "columns": log_definition.fields,
                     "description": log_definition.description,
                 },
-                "rows": log_entries,
+                "rows": paginated_log_entries,
             }
 
             serializer = LogTableResponseSerializer(response_data)
@@ -119,7 +116,7 @@ class LogTableView(BaseAPIView):
     def delete(self, request, id):
         try:
             log_definition = self.get_object(id)
-            if not log_definition and log_definition.is_deleted:
+            if not log_definition or log_definition.is_deleted:
                 return self.not_found_response()
             # soft delete: mark as inactive instead of deleting
             log_definition.is_deleted = True
@@ -134,16 +131,10 @@ class LogTableView(BaseAPIView):
 
 class LogEntryDetailUpdateDeleteView(BaseAPIView):
     def get_object(self, id):
-        try:
-            return get_object_or_404(LogEntry, id=id)
-        except LogEntry.DoesNotExist:
-            return None
+        return LogEntry.objects.filter(id=id).first()
 
     def get_table(self, id):
-        try:
-            return get_object_or_404(LogDefinition, id=id)
-        except LogDefinition.DoesNotExist:
-            return None
+        return LogDefinition.objects.filter(id=id).first()
 
     def get(self, request, id):
         try:
@@ -229,7 +220,7 @@ class ActivityView(BaseAPIView):
             paginator = ActivityResultSetPagination()
             page = paginator.paginate_queryset(log_entries, request)
             if not page:
-                return self.not_found_response(serializer.data)
+                return self.not_found_response()
             serializer = ActivityResponseSerializer(page, many=True)
             return self.success_response(
                 paginator.get_paginated_response(serializer.data),

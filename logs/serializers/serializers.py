@@ -37,7 +37,7 @@ class LogDefinitionSerializer(serializers.ModelSerializer):
             current_config = {}
             if not isinstance(values, dict):
                 raise serializers.ValidationError(
-                    f"Configuration for '{field_name}' must be an object."
+                    f"Configuration for '{column}' must be an object."
                 )
             missing_keys = [key for key in required_keys if key not in values]
             if missing_keys:
